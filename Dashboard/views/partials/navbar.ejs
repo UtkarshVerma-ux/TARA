@@ -1,0 +1,98 @@
+<nav id="navbar">
+    <!-- Logo and Hamburger Container -->
+    <div class="nav-header">
+        <div id="logo">
+            <img src="/images/logo/logo.png" alt="Logo" />
+        </div>
+        <div class="hamburger-menu" id="hamburger-menu" onclick="toggleMenu()">
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+        </div>
+    </div>
+
+    <!-- Navigation Links -->
+    <ul id="nav-links">
+        <% if (role === 'student') { %>
+            <li>
+                <a href="/student-dashboard" aria-label="Home">
+                    <img src="images/icons/Home.png" alt="Home" />
+                    <span>Home</span>
+                </a>
+            </li>
+            <li>
+                <a href="/reminder?role=student" aria-label="Reminders">
+                    <img src="images/icons/bell.png" alt="Reminders" />
+                    <span>Reminders</span>
+                </a>
+            </li>
+            <li>
+                <a href="/messages?role=student" aria-label="Messages">
+                    <img src="images/icons/messages.png" alt="Messages" />
+                    <span>Messages</span>
+                </a>
+            </li>
+            <li>
+                <a href="/attendance-report?role=student" aria-label="Reports">
+                    <img src="images/icons/reports.png" alt="Reports" />
+                    <span>Reports</span>
+                </a>
+            </li>
+            <li>
+                <a href="/user-profile?role=student" aria-label="User Profile">
+                    <img src="images/icons/user.png" alt="User" />
+                    <span>User</span>
+                </a>
+            </li>
+        <% } else if (role === 'teacher') { %>
+            <li>
+                <a href="/teacher-dashboard" aria-label="Home">
+                    <img src="images/icons/Home.png" alt="Home" />
+                    <span>Home</span>
+                </a>
+            </li>
+            <li>
+                <a href="/reminder?role=teacher" aria-label="Reminders">
+                    <img src="images/icons/bell.png" alt="Reminders" />
+                    <span>Reminders</span>
+                </a>
+            </li>
+            <li>
+                <a href="/messages?role=teacher" aria-label="Messages">
+                    <img src="images/icons/messages.png" alt="Messages" />
+                    <span>Messages</span>
+                </a>
+            </li>
+            <li>
+                <a href="/attendance-report?role=teacher" aria-label="Reports">
+                    <img src="images/icons/reports.png" alt="Reports" />
+                    <span>Reports</span>
+                </a>
+            </li>
+            <li>
+                <a href="/user-profile?role=teacher" aria-label="User Profile">
+                    <img src="images/icons/user.png" alt="User" />
+                    <span>User</span>
+                </a>
+            </li>
+        <% } %>
+        <li>
+            <a href="#" id="dark-mode-toggle" onclick="toggleDarkMode()" aria-label="Activate Dark Mode">
+                <img src="images/icons/dark mode.png" alt="Dark Mode" />
+                <span>Dark Mode</span>
+            </a>
+        </li>
+        <li>
+            <a href="#" id="light-mode-toggle" onclick="toggleLightMode()" style="display:none;" aria-label="Activate Light Mode">
+                <img src="images/icons/light mode.png" alt="Light Mode" />
+                <span>Light Mode</span>
+            </a>
+        </li>
+        <li>
+            <a href="/contact-us?role=<%= role %>" aria-label="Contact Us">
+                <img src="images/icons/contact-us.png" alt="Contact Us" />
+                <span>Contact Us</span>
+            </a>
+        </li>
+    </ul>
+</nav>

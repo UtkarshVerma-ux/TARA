@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TARA: Tracking And Recognition Attendance</title>
+    <link rel="stylesheet" href="/styles/navbar.css">
+    <link rel="stylesheet" href="/styles/messages.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"> <!-- Add FontAwesome for icons -->
+</head>
+<body>
+    <!-- Include Navbar -->
+    <%- include('./partials/navbar', { role: role }) %>
+
+    <div class="messages-container">
+        <div class="messages-header">
+            <h1>Class Updates and Assignments</h1>
+        </div>
+
+        <div class="messages-content">
+            <% messages.forEach(message => { %>
+                <div class="message">
+                    <p><strong><%= message.sender %>:</strong> <%= message.text %></p>
+                    <% if (message.attachment) { %>
+                        <a href="<%= message.attachment %>" download>
+                            <i class="fas fa-download"></i> Download Attachment
+                        </a>
+                    <% } %>
+                </div>
+            <% }) %>
+        </div>
+
+        <% if (role === 'teacher') { %>
+            <div class="message-form">
+                <form action="/send-message" method="POST" enctype="multipart/form-data">
+                    <input type="text" name="message" placeholder="Type your message here" required>
+                    <input type="file" name="attachment">
+                    <button type="submit"><i class="fas fa-paper-plane"></i> Send</button>
+                </form>
+            </div>
+        <% } %>
+    </div>
+    <script src="/js/navbar.js"></script>
+    <script src="/js/messages.js"></script>
+</body>
+</html>

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TARA: Tracking And Recognition Attendance</title>
+    <link rel="stylesheet" href="/styles/navbar.css">
+    <link rel="stylesheet" href="/styles/report.css">
+</head>
+<body>
+    <!-- Include Navbar -->
+    <%- include('../partials/navbar', { role: 'teacher' }) %>
+
+    <div class="report-container">
+        <div class="report-header">
+            <h1>Download Attendance Report</h1>
+        </div>
+
+        <div class="report-form">
+            <form action="/download-teacher-report" method="GET">
+                <label for="branch">Branch:</label>
+                <select id="branch" name="branch" required>
+                    <option value="Computer Science">Computer Science</option>
+                    <!-- Add more branches as needed -->
+                </select>
+                <label for="month">Month:</label>
+                <input type="number" id="month" name="month" min="1" max="12" required>
+                <label for="year">Year:</label>
+                <input type="number" id="year" name="year" min="2000" required>
+                <button type="submit"><i class="fas fa-download"></i> Download Report</button>
+            </form>
+        </div>
+    </div>
+    <script src="/js/navbar.js" type="text/JSX"></script>
+</body>
+</html>

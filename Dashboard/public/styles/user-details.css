@@ -1,0 +1,91 @@
+/* General Styling for User Details Page */
+body.user-details {
+    margin: 0;
+    padding: 0;
+    font-family: 'Roboto', sans-serif;
+    background: linear-gradient(to bottom, #e9f7fa, #ffffff);
+}
+
+.user-container {
+    background-color: #ffffff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 600px;
+    box-sizing: border-box;
+    margin: 100px auto; /* Added margin to prevent overlap with fixed navbar */
+}
+
+/* Header Styling */
+.user-container h1 {
+    margin-bottom: 20px;
+    font-size: 24px;
+    color: #00695c; /* Matching navbar color */
+}
+
+/* Form Group Styling */
+.form-group, .user-profile p, .report-form {
+    margin-bottom: 15px;
+}
+
+.user-container label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #004d40; /* Matching navbar color */
+}
+
+.user-container input, .user-container textarea, .user-container select, .user-container button {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+    margin-bottom: 10px;
+}
+
+.user-container button {
+    background-color: #00695c;
+    color: #ffffff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.user-container button:hover {
+    background-color: #004d40;
+}
+
+/* Profile Picture Styling */
+.profile-pic {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    margin-bottom: 10px;
+}
+
+.user-profile {
+    text-align: center;
+}
+
+.user-profile ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+/* Responsive Styles */
+@media (max-width: 600px) {
+    .user-container {
+        width: 90%;
+        padding: 15px;
+    }
+
+    .user-container h1 {
+        font-size: 20px;
+    }
+
+    .user-container button, .user-container input, .user-container textarea, .user-container select {
+        padding: 8px;
+    }
+}

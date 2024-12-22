@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TARA: Tracking And Recognition Attendance</title>
+    <link rel="stylesheet" href="/styles/navbar.css">
+    <link rel="stylesheet" href="/styles/dashboard.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.10.2/main.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@5.10.2/main.min.css">
+</head>
+<body>
+    <!-- Include Navbar -->
+    <%- include('../partials/navbar', { role: 'student' }) %>
+
+    <div class="dashboard-container">
+        <div class="dashboard-header">
+            <h1>Welcome, <%= student.name %>!</h1>
+            <p>Roll Number: <%= student.rollNumber %></p>
+            <p>Branch: <%= student.branch %></p>
+            <p>Semester: <%= student.semester %></p>
+        </div>
+
+        <div class="dashboard-section">
+            <h2>Attendance Summary</h2>
+            <div class="card attendance-chart">
+                <canvas id="attendanceChart" width="300" height="300"></canvas> <!-- Set specific dimensions -->
+            </div>
+        </div>
+
+        <div class="dashboard-section">
+            <h2>View Attendance</h2>
+            <form id="attendance-form">
+                <label for="courseCode">Course:</label>
+                <select id="courseCode" name="courseCode">
+                    <% student.courses.forEach(course => { %>
+                        <option value="<%= course.code %>"><%= course.name %></option>
+                    <% }) %>
+                </select>
+                <label for="month">Month:</label>
+                <input type="number" id="month" name="month" min="1" max="12" required>
+                <label for="year">Year:</label>
+                <input type="number" id="year" name="year" min="2000" required>
+                <button type="submit">View Attendance</button>
+            </form>
+            <div class="card calendar">
+                <div id="calendar"></div>
+                <p id="no-attendance-message" style="display: none;">No attendance data available for the selected month and year.</p>
+            </div>
+        </div>
+
+        <div class="dashboard-section">
+            <h2>Notices</h2>
+            <div class="card notices-list">
+                <ul>
+                    <% student.notices.forEach(notice => { %>
+                        <li><%= notice %></li>
+                    <% }) %>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <script src="/js/navbar.js"></script>
+    <script src="/js/studentDashboard.js"></script> <!-- Ensure this script is at the end of the body -->
+</body>
+</html>

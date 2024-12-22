@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TARA: Tracking And Recognition Attendance</title>
+    <link rel="stylesheet" href="<%= 'styles/index.css' %>">
+</head>
+<body>
+    <div class="container">
+        <img src="<%= '/images/logo/logo.png' %>" alt="logo" class="logo"/>
+        <h1>Welcome Back</h1>
+        <div class="login-form">
+            <p>Login as</p>
+            <label for="teacher">Teacher</label>
+            <input type="radio" name="role" value="teacher" id="teacher"/>
+            <label for="student">Student</label>
+            <input type="radio" name="role" value="student" id="student"/>
+            <button type="button" onclick="showLoginForm()">Submit</button>
+        </div>
+    </div>
+
+    <!-- Teacher Login Form -->
+    <div id="teacher-form" class="login-detail-form" style="display: none;">
+        <h2>Teacher Login</h2>
+        <input type="text" id="teacher-username" placeholder="Username" />
+        <div class="password-section">
+            <input type="password" placeholder="Password" />
+            <button type="button" onclick="getOtp('teacher-username')">Get OTP</button>
+        </div>
+        <button type="button">Login</button>
+        <button type="button" onclick="cancelForm()">Cancel</button>
+        <p class="register-option">Not yet registered? <a href="<%= '/register/teacher' %>">Register as Teacher</a></p>
+    </div>
+
+    <!-- Student Login Form -->
+    <div id="student-form" class="login-detail-form" style="display: none;">
+        <h2>Student Login</h2>
+        <input type="text" id="student-username" placeholder="Username" />
+        <div class="password-section">
+            <input type="password" placeholder="Password" />
+            <button type="button" onclick="getOtp('student-username')">Get OTP</button>
+        </div>
+        <button type="button">Login</button>
+        <button type="button" onclick="cancelForm()">Cancel</button>
+        <p class="register-option">Not yet registered? <a href="<%= '/register/student' %>">Register as Student</a></p>
+    </div>
+
+    <script src="<%= 'js/index.js' %>"></script>
+</body>
+</html>

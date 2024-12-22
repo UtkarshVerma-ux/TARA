@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TARA: Tracking And Recognition Attendance</title>
+    <link rel="stylesheet" href="/styles/register.css">
+</head>
+<body>
+    <form action="/register" method="POST" class="register-form" enctype="multipart/form-data">
+        <input type="hidden" name="role" value="<%= role %>">
+        <h2>Register as <%= role.charAt(0).toUpperCase() + role.slice(1) %></h2>
+        <label for="name">Name:</label>
+        <input type="text" id="name" name="name" required>
+        <label for="email">Email:</label>
+        <input type="email" id="email" name="email" required>
+        <label for="phone">Phone Number:</label>
+        <input type="tel" id="phone" name="phone" required>
+        <label for="photos">Passport Size Photos (Minimum 10):</label>
+        <input type="file" id="photos" name="photos" multiple accept="image/*" required onchange="previewPhotos()">
+        <div id="photos-preview"></div>
+        <p class="disclaimer">Please include clear photos and no fewer than 10 photos.</p>
+        <label for="branch">Branch:</label>
+        <input type="text" id="branch" name="branch" required>
+
+        <% if (role === 'student') { %>
+        <label for="rollNumber">Roll Number:</label>
+        <input type="text" id="rollNumber" name="rollNumber" required>
+        <label for="semester">Current Semester:</label>
+        <input type="text" id="semester" name="semester" required>
+        <div id="student-courses">
+            <label for="student-course-0">Course Name:</label>
+            <input type="text" id="student-course-0" name="studentCourses[0][name]" required>
+            <label for="studentCourseCode-0">Course Code:</label>
+            <input type="text" id="studentCourseCode-0" name="studentCourses[0][code]" required>
+        </div>
+        <button type="button" onclick="addStudentCourse()">Add Another Course</button>
+        <% } %>
+
+        <% if (role === 'teacher') { %>
+        <div id="teacher-courses">
+            <label for="teacher-course-0">Course Name:</label>
+            <input type="text" id="teacher-course-0" name="teacherCourses[0][name]" required>
+            <label for="teacherCourseCode-0">Course Code:</label>
+            <input type="text" id="teacherCourseCode-0" name="teacherCourses[0][code]" required>
+            <label for="teacherBranch-0">Branch:</label>
+            <input type="text" id="teacherBranch-0" name="teacherCourses[0][branch]" required>
+        </div>
+        <button type="button" onclick="addTeacherCourse()">Add Another Course</button>
+        <% } %>
+        <button type="submit">Register</button>
+    </form>
+    <script src="/scripts/register.js"></script>
+</body>
+</html>

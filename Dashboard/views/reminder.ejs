@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upcoming Classes Reminder</title>
+    <link rel="stylesheet" href="/styles/navbar.css">
+    <link rel="stylesheet" href="/styles/reminder.css">
+</head>
+<body>
+    <!-- Include Navbar -->
+    <%- include('./partials/navbar',{role:user.role}) %>
+
+    <div class="reminder-container">
+        <div class="reminder-header">
+            <h1>Upcoming Classes</h1>
+        </div>
+
+        <div class="reminder-content">
+            <% if (user.role === 'student') { %>
+                <% if (upcomingClasses.length > 0) { %>
+                    <ul>
+                        <% upcomingClasses.forEach(classInfo => { %>
+                            <li>
+                                <p><strong>Course:</strong> <%= classInfo.course %></p>
+                                <p><strong>Date:</strong> <%= classInfo.date %></p>
+                                <p><strong>Time:</strong> <%= classInfo.time %></p>
+                                <p><strong>Classroom:</strong> <%= classInfo.classroom %></p>
+                            </li>
+                        <% }) %>
+                    </ul>
+                <% } else { %>
+                    <p>No upcoming classes for today.</p>
+                <% } %>
+            <% } else if (user.role === 'teacher') { %>
+                <% if (upcomingClasses.length > 0) { %>
+                    <ul>
+                        <% upcomingClasses.forEach(classInfo => { %>
+                            <li>
+                                <p><strong>Course:</strong> <%= classInfo.course %></p>
+                                <p><strong>Date:</strong> <%= classInfo.date %></p>
+                                <p><strong>Time:</strong> <%= classInfo.time %></p>
+                                <p><strong>Branch:</strong> <%= classInfo.branch %></p>
+                                <p><strong>Classroom:</strong> <%= classInfo.classroom %></p>
+                            </li>
+                        <% }) %>
+                    </ul>
+                <% } else { %>
+                    <p>No upcoming classes for today.</p>
+                <% } %>
+            <% } %>
+        </div>
+    </div>
+    <script src="/js/navbar.js"></script>
+</body>
+</html>

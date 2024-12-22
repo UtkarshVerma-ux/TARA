@@ -1,0 +1,155 @@
+body {
+    font-family: 'Arial', sans-serif;
+    background: linear-gradient(to right, #e8f5e9, #a5d6a7); /* Gradient background */
+    color: #2e7d32; /* Dark green text */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    flex-direction: column;
+    transition: all 0.3s ease;
+    overflow-x: hidden; /* Prevent horizontal scroll */
+}
+
+.container {
+    background-color: rgba(255, 255, 255, 0.8); /* Semi-transparent background */
+    border-radius: 15px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+    padding: 30px;
+    text-align: center;
+    max-width: 400px;
+    width: 90%; /* Changed from 100% to 90% to fit within mobile screens */
+    margin-bottom: 20px;
+    transition: all 0.3s ease;
+    box-sizing: border-box; /* Include padding and border in element's total width and height */
+}
+
+.logo {
+    max-width: 120px;
+    margin-bottom: 20px;
+    transition: all 0.3s ease;
+}
+
+h1 {
+    color: #1b5e20; /* Darker green */
+    margin-bottom: 20px;
+    transition: all 0.3s ease;
+    font-size: 2em;
+}
+
+p {
+    color: #4caf50; /* Medium green */
+    margin-bottom: 10px;
+}
+
+label {
+    margin-right: 10px;
+}
+
+input[type="radio"] {
+    margin-right: 20px;
+}
+
+button {
+    background-color: #388e3c; /* Dark green button */
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 25px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+    margin: 5px;
+}
+
+button:hover {
+    background-color: #2e7d32; /* Slightly darker green on hover */
+    transform: scale(1.05);
+}
+
+button:disabled {
+    background-color: #a5d6a7; /* Soothing green */
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.login-detail-form {
+    background-color: rgba(255, 255, 255, 0.8); /* Semi-transparent background */
+    border-radius: 15px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+    padding: 30px;
+    text-align: center;
+    max-width: 400px;
+    width: 90%; /* Changed from 100% to 90% to fit within mobile screens */
+    display: none;
+    transition: all 0.3s ease;
+    box-sizing: border-box; /* Include padding and border in element's total width and height */
+}
+
+.login-detail-form input {
+    display: block;
+    margin: 10px 0;
+    padding: 10px;
+    width: 80%;
+    border-radius: 5px;
+    border: 1px solid #2e7d32;
+}
+
+.password-section {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px; /* Add some spacing between elements */
+}
+
+.password-section input {
+    width: auto;
+    flex-grow: 1;
+}
+
+.register-option {
+    margin-top: 20px;
+    color: #2e7d32;
+}
+
+.register-option a {
+    color: #388e3c;
+    text-decoration: none;
+    font-weight: bold;
+    transition: color 0.3s ease;
+}
+
+.register-option a:hover {
+    color: #1b5e20; /* Darker green on hover */
+    text-decoration: underline;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .container, .login-detail-form {
+        padding: 20px;
+    }
+
+    .logo {
+        max-width: 100px;
+    }
+
+    button {
+        padding: 8px 16px;
+    }
+}
+
+@media (max-width: 480px) {
+    .container, .login-detail-form {
+        padding: 15px;
+        width: 95%; /* Adjust width to fit within mobile screens */
+    }
+
+    .logo {
+        max-width: 80px;
+    }
+
+    button {
+        padding: 6px 12px;
+    }
+}

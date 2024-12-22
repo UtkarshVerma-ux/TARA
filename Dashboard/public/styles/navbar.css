@@ -1,0 +1,192 @@
+/* General Body Styling */
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Roboto', sans-serif;
+    background: linear-gradient(to bottom, #e9f7fa, #ffffff);
+}
+
+/* Navbar Styling */
+#navbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 270px;
+    height: 100%;
+    background: linear-gradient(180deg, #00695c, #004d40);
+    display: flex;
+    flex-direction: column;
+    padding: 20px 10px;
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+    z-index: 100;
+    overflow-y: auto;
+    box-sizing: border-box;
+}
+
+/* Logo and Hamburger Container */
+.nav-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+#logo {
+    background: #ffffff; /* Fixed white background for logo */
+    padding: 15px;
+    border-radius: 10px;
+    box-shadow: 0 3px 5px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    max-width: 100%;
+}
+
+#logo img {
+    max-width: 100%;
+    height: auto;
+    object-fit: contain; /* Ensures the logo fits within its container */
+}
+
+/* Hamburger Icon */
+.hamburger-menu {
+    display: none;
+    flex-direction: column;
+    justify-content: space-between;
+    width: 30px;
+    height: 25px;
+    cursor: pointer;
+}
+
+.hamburger-menu .bar {
+    height: 4px;
+    background-color: #ffffff;
+    border-radius: 4px;
+}
+
+/* Navigation Links */
+#navbar ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    overflow-y: auto;
+    max-height: calc(100vh - 150px); /* Limit the height of links */
+}
+
+#navbar ul li {
+    margin: 10px 0;
+}
+
+#navbar ul li a {
+    display: flex;
+    align-items: center;
+    padding: 10px 15px;
+    text-decoration: none;
+    font-size: 16px;
+    font-weight: 500;
+    color: #ffffff;
+    border-radius: 10px;
+    transition: background 0.3s ease, transform 0.2s ease;
+}
+
+#navbar ul li a:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateX(5px);
+    box-shadow: 0 2px 5px rgba(255, 255, 255, 0.3);
+}
+
+#navbar ul li a img {
+    width: 24px;
+    height: 24px;
+    margin-right: 10px;
+}
+
+/* Active State */
+#navbar ul li a.active {
+    background: #ffffff;
+    color: #004d40;
+    box-shadow: 0 4px 10px rgba(255, 255, 255, 0.3);
+    font-weight: bold;
+}
+
+/* Animated Hamburger Icon */
+.hamburger-menu.open .bar:nth-child(1) {
+    transform: rotate(45deg);
+    position: relative;
+    top: 8px;
+}
+
+.hamburger-menu.open .bar:nth-child(2) {
+    opacity: 0;
+}
+
+.hamburger-menu.open .bar:nth-child(3) {
+    transform: rotate(-45deg);
+    position: relative;
+    bottom: 8px;
+}
+
+/* Responsive Navbar */
+@media (max-width: 768px) {
+    /* Adjust navbar width for mobile */
+    #navbar {
+        width: 100%;
+        height: auto;
+        flex-direction: column; /* Change to column when hamburger is clicked */
+        padding: 10px 20px;
+    }
+
+    .nav-header {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+    }
+
+    /* Hide the navigation links by default on small screens */
+    #navbar ul {
+        display: none;
+        flex-direction: column;
+        margin-top: 20px;
+    }
+
+    /* Make sure the hamburger menu appears on small screens */
+    .hamburger-menu {
+        display: flex;
+    }
+
+    /* Show the links when the navbar has the 'open' class */
+    #navbar.open ul {
+        display: flex;
+        flex-direction: column; /* Ensure links are in a column */
+    }
+
+    /* Adjust font size of navbar items on mobile */
+    #navbar ul li a {
+        font-size: 14px;
+    }
+
+    /* Adjust size of images inside the navbar links */
+    #navbar ul li a img {
+        width: 20px;
+        height: 20px;
+    }
+
+    /* Ensure logo doesn't overflow and is responsive on smaller screens */
+    #navbar #logo {
+        padding: 10px;
+        margin-bottom: 0; /* Remove bottom margin to align with hamburger */
+    }
+
+    #navbar #logo img {
+        width: 60%; /* Ensure logo image is smaller on mobile screens */
+    }
+}
+
+/* Responsive adjustments for even smaller screens */
+@media (max-width: 480px) {
+    #navbar #logo img {
+        width: 50%; /* Make logo even smaller for tiny screens */
+    }
+}

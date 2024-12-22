@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TARA: Tracking And Recognition Attendance</title>
+    <link rel="stylesheet" href="/styles/navbar.css">
+    <link rel="stylesheet" href="/styles/dashboard.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.10.2/main.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@5.10.2/main.min.css">
+</head>
+<body>
+    <!-- Include Navbar -->
+    <%- include('../partials/navbar',{role:'teacher'}) %>
+
+    <div class="dashboard-container">
+        <div class="dashboard-header">
+            <h1>Welcome, <%= teacher.name %>!</h1>
+            <p>Branch: <%= teacher.branch %></p>
+        </div>
+
+        <div class="dashboard-section">
+            <h2>Classes Taken</h2>
+            <form id="class-form">
+                <label for="branch">Branch:</label>
+                <input type="text" id="branch" name="branch" required>
+                <label for="month">Month:</label>
+                <input type="number" id="month" name="month" min="1" max="12" required>
+                <label for="year">Year:</label>
+                <input type="number" id="year" name="year" min="2000" required>
+                <button type="submit">View Classes</button>
+            </form>
+            <div class="card class-details">
+                <div id="classDetails"></div>
+                <p id="no-class-message" style="display: none;">No class data available for the selected month and year.</p>
+            </div>
+        </div>
+
+        <div class="dashboard-section">
+            <h2>Notices</h2>
+            <div class="card notices-list">
+                <ul>
+                    <% teacher.notices.forEach(notice => { %>
+                        <li><%= notice %></li>
+                    <% }) %>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <script src="/js/navbar.js"></script>
+    <script src="/js/teacherDashboard.js"></script>
+</body>
+</html>

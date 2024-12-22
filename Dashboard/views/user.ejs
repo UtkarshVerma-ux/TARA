@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TARA: Tracking And Recognition Attendance</title>
+    <link rel="stylesheet" href="/styles/navbar.css">
+    <link rel="stylesheet" href="/styles/user-details.css">
+</head>
+
+<body class="user-details">
+    <!-- Include Navbar -->
+    <%- include('./partials/navbar', {role: role}) %>
+
+    <div class="user-container">
+        <h1>User Details</h1>
+
+        <% if (role === 'student') { %>
+            <div class="user-profile">
+                <img src="/images/profile/utkarsh.jpg" alt="Profile Picture" class="profile-pic">
+                <p><strong>Name:</strong> <%= student.name %></p>
+                <p><strong>Roll Number:</strong> <%= student.rollNumber %></p>
+                <p><strong>Branch:</strong> <%= student.branch %></p>
+                <p><strong>Semester:</strong> <%= student.semester %></p>
+                <p><strong>Courses:</strong></p>
+                <ul>
+                    <% student.courses.forEach(course => { %>
+                        <li><%= course.name %> (<%= course.code %>)</li>
+                    <% }) %>
+                </ul>
+
+                <div class="report-form">
+                    <h2>Download Attendance Report</h2>
+                    <form action="/download-student-report" method="GET">
+                        <label for="courseCode">Course:</label>
+                        <select id="courseCode" name="courseCode" required>
+                            <% student.courses.forEach(course => { %>
+                                <option value="<%= course.code %>"><%= course.name %></option>
+                            <% }) %>
+                        </select>
+                        <label for="month">Month:</label>
+                        <input type="number" id="month" name="month" min="1" max="12" required>
+                        <label for="year">Year:</label>
+                        <input type="number" id="year" name="year" min="2000" required>
+                        <button type="submit"><i class="fas fa-download"></i> Download Report</button>
+                    </form>
+                </div>
+            </div>
+        <% } else if (role === 'teacher') { %>
+            <div class="user-profile">
+                <img src="/images/profile/utkarsh.jpg" alt="Profile Picture" class="profile-pic">
+                <p><strong>Name:</strong> <%= teacher.name %></p>
+                <p><strong>Branch:</strong> <%= teacher.branch %></p>
+                <p><strong>Classes Taken:</strong> <%= teacher.classesTaken %></p>
+                <p><strong>Courses:</strong></p>
+                <ul>
+                    <% teacher.courses.forEach(course => { %>
+                        <li><%= course.name %> (<%= course.code %>)</li>
+                    <% }) %>
+                </ul>
+
+                <div class="report-form">
+                    <h2>Generate Attendance Report</h2>
+                    <form action="/generate-teacher-report-pdf" method="GET">
+                        <label for="branch">Branch:</label>
+                        <input type="text" id="branch" name="branch" value="<%= teacher.branch %>" readonly>
+                        <label for="month">Month:</label>
+                        <input type="number" id="month" name="month" min="1" max="12" required>
+                        <label for="year">Year:</label>
+                        <input type="number" id="year" name="year" min="2000" required>
+                        <button type="submit"><i class="fas fa-download"></i> Generate Report</button>
+                    </form>
+                </div>
+            </div>
+        <% } %>
+    </div>
+
+    <script src="/js/navbar.js" type="text/JSX"></script>
+</body>
+
+</html>

@@ -1,0 +1,138 @@
+/* General Body Styling */
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Roboto', sans-serif;
+    background: linear-gradient(to bottom, #e9f7fa, #ffffff);
+}
+
+/* Report Container */
+.report-container {
+    padding: 20px;
+    box-sizing: border-box;
+    width: calc(100% - 270px); /* Adjust to accommodate the width of the fixed navbar */
+    margin-left: 270px; /* Ensure the container is not hidden behind the navbar */
+    background: #f7f9fc; /* Add background color */
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Report Header */
+.report-header {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.report-header h1 {
+    font-size: 2rem;
+    color: #00695c;
+    margin: 0;
+}
+
+/* Report Form */
+.report-form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.report-form form {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 600px;
+}
+
+.report-form label {
+    margin-bottom: 8px;
+    font-size: 1rem;
+    color: #004d40;
+}
+
+.report-form input,
+.report-form select {
+    margin-bottom: 15px;
+    padding: 12px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    font-size: 1rem;
+    width: 100%;
+}
+
+.report-form button {
+    padding: 12px;
+    border-radius: 5px;
+    border: none;
+    background-color: #4caf50;
+    color: white;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.report-form button i {
+    margin-right: 8px;
+}
+
+.report-form button:hover {
+    background-color: #45a049;
+}
+
+/* Responsive Design */
+
+/* Tablets (768px and below) */
+@media (max-width: 768px) {
+    .report-container {
+        width: 100%;
+        margin-left: 0;
+        padding: 15px;
+    }
+
+    .report-header h1 {
+        font-size: 1.8rem;
+    }
+
+    .report-form {
+        padding: 10px;
+    }
+
+    .report-form label {
+        font-size: 0.95rem;
+    }
+
+    .report-form input,
+    .report-form select {
+        padding: 10px;
+        font-size: 0.95rem;
+    }
+
+    .report-form button {
+        padding: 10px;
+        font-size: 0.95rem;
+    }
+}
+
+/* Mobile Devices (480px and below) */
+@media (max-width: 480px) {
+    .report-header h1 {
+        font-size: 1.5rem;
+    }
+
+    .report-form label {
+        font-size: 0.9rem;
+    }
+
+    .report-form input,
+    .report-form select {
+        font-size: 0.9rem;
+        padding: 8px;
+    }
+
+    .report-form button {
+        font-size: 0.9rem;
+        padding: 8px;
+    }
+}

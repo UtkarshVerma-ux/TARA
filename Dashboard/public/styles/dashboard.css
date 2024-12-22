@@ -1,0 +1,183 @@
+/* General Dashboard Styling */
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Roboto', sans-serif;
+    background: linear-gradient(to bottom, #e9f7fa, #ffffff);
+    overflow-x: hidden; /* Prevent horizontal overflow */
+}
+
+/* Dashboard Container Styling */
+.dashboard-container {
+    padding: 20px;
+    box-sizing: border-box;
+    width: calc(100% - 270px); /* Adjust to accommodate the width of the fixed navbar */
+    margin-left: 270px; /* Ensure the container is not hidden behind the navbar */
+}
+
+/* Header Styling */
+.dashboard-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    background-color: #00695c;
+    color: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.dashboard-header h1 {
+    margin: 0;
+    font-size: 2.5em;
+}
+
+.dashboard-header p {
+    margin: 5px 0 0;
+    font-size: 1.2em;
+}
+
+/* Section Styling */
+.dashboard-section {
+    margin-bottom: 30px;
+}
+
+.dashboard-section h2 {
+    margin-bottom: 15px;
+    font-size: 1.8em;
+    color: #004d40;
+}
+
+.dashboard-section .card {
+    background-color: #ffffff;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    transition: box-shadow 0.3s ease;
+    overflow-x: auto; /* Ensure content within cards is scrollable if too wide */
+    max-width: 100%; /* Ensure the card doesn't exceed the viewport width */
+}
+
+.dashboard-section .card:hover {
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+.attendance-chart,
+.calendar,
+.notices-list {
+    margin-top: 10px;
+    max-width: 100%; /* Ensure these elements don't exceed the viewport width */
+}
+
+/* Form Styling */
+#attendance-form, #class-form {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    margin-bottom: 20px;
+}
+
+#attendance-form label, #class-form label {
+    font-weight: bold;
+    margin-right: 10px;
+}
+
+#attendance-form input, #attendance-form select, #attendance-form button,
+#class-form input, #class-form button {
+    margin-bottom: 10px;
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    font-size: 1em;
+    max-width: 100%; /* Ensure form elements don't exceed the viewport width */
+}
+
+#attendance-form button, #class-form button {
+    background-color: #4caf50;
+    color: white;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+#attendance-form button:hover, #class-form button:hover {
+    background-color: #45a049;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .dashboard-container {
+        width: 100%;
+        margin-left: 0; /* Remove margin to avoid overlapping with navbar */
+        padding: 10px;
+        padding-top: 120px; /* Ensure enough space from top */
+    }
+
+    .dashboard-header {
+        padding: 15px;
+    }
+
+    .dashboard-header h1 {
+        font-size: 2em;
+    }
+
+    .dashboard-header p {
+        font-size: 1em;
+    }
+
+    .dashboard-section h2 {
+        font-size: 1.5em;
+    }
+
+    .dashboard-section .card {
+        padding: 15px;
+    }
+
+    #attendance-form, #class-form {
+        flex-direction: column;
+    }
+}
+
+@media (max-width: 480px) {
+    .dashboard-container {
+        padding-top: 150px; /* Ensure enough space from top */
+    }
+
+    .dashboard-header {
+        padding: 15px;
+    }
+
+    .dashboard-header h1 {
+        font-size: 1.5em;
+    }
+
+    .dashboard-header p {
+        font-size: 0.9em;
+    }
+
+    .dashboard-section h2 {
+        font-size: 1.2em;
+    }
+
+    .dashboard-section .card {
+        padding: 10px;
+    }
+
+    #attendance-form input, #attendance-form select, #attendance-form button,
+    #class-form input, #class-form button {
+        font-size: 0.9em;
+    }
+
+    .attendance-chart,
+    .calendar,
+    .notices-list {
+        font-size: 0.9em;
+    }
+
+    #attendance-form label, #class-form label {
+        margin-right: 5px;
+        font-size: 0.9em;
+    }
+}

@@ -1,0 +1,132 @@
+body {
+    font-family: 'Arial', sans-serif;
+    background: linear-gradient(to right, #e8f5e9, #a5d6a7); /* Gradient background */
+    color: #2e7d32; /* Dark green text */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+    padding: 20px;
+    box-sizing: border-box; /* Ensure padding is included in width calculations */
+}
+
+.register-form {
+    background-color: rgba(255, 255, 255, 0.8); /* Semi-transparent background */
+    border-radius: 15px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+    padding: 30px;
+    text-align: center;
+    max-width: 600px;
+    width: 100%;
+    box-sizing: border-box; /* Ensure padding is included in width calculations */
+    margin: auto;
+}
+
+.register-form h2 {
+    color: #1b5e20; /* Darker green */
+    margin-bottom: 20px;
+    font-size: 1.8em;
+}
+
+.register-form label {
+    display: block;
+    margin: 10px 0 5px;
+    color: #2e7d32;
+    text-align: left;
+    width: 100%;
+}
+
+.register-form input[type="text"],
+.register-form input[type="email"],
+.register-form input[type="tel"],
+.register-form input[type="file"] {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 20px;
+    border-radius: 5px;
+    border: 1px solid #2e7d32;
+    box-sizing: border-box;
+}
+
+button {
+    background-color: #388e3c; /* Dark green button */
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 25px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+    margin: 10px 0;
+}
+
+button:hover {
+    background-color: #2e7d32; /* Slightly darker green on hover */
+    transform: scale(1.05);
+}
+
+button:disabled {
+    background-color: #a5d6a7; /* Soothing green */
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.disclaimer {
+    color: #2e7d32;
+    font-size: 0.9em;
+    margin-bottom: 20px;
+}
+
+#photos-preview {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+#photos-preview .img-preview {
+    position: relative;
+}
+
+#photos-preview img {
+    max-width: 100px;
+    border: 2px solid #2e7d32;
+    border-radius: 5px;
+}
+
+#photos-preview .img-preview button {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background-color: #f44336; /* Red button */
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    line-height: 1;
+    transition: background-color 0.3s ease;
+}
+
+#photos-preview .img-preview button:hover {
+    background-color: #d32f2f; /* Darker red on hover */
+}
+
+/* Responsive Design */
+@media (max-width: 600px) {
+    .register-form {
+        padding: 20px;
+    }
+
+    .register-form h2 {
+        font-size: 1.5em;
+    }
+
+    button {
+        padding: 8px 16px;
+    }
+}
