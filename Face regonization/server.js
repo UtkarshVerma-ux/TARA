@@ -93,59 +93,59 @@ app.post('/mark-attendance', (req, res) => {
             returnFaceId: true
         }
     })
-    .then(response => {
-        const faces = response.data;
-        if (faces.length === 0) {
-            return res.status(400).send('No faces detected');
-        }
+        .then(response => {
+            const faces = response.data;
+            if (faces.length === 0) {
+                return res.status(400).send('No faces detected');
+            }
 
-        let attendanceMarked = 0;
+            let attendanceMarked = 0;
 
-        // Compare detected face IDs with stored face IDs
-        const verificationPromises = faces.map(face => {
-            const detectedFaceId = face.faceId;
+            // Compare detected face IDs with stored face IDs
+            const verificationPromises = faces.map(face => {
+                const detectedFaceId = face.faceId;
 
-            return Promise.all(students.map(student => {
-                const storedFaceId = student.faceId;
+                return Promise.all(students.map(student => {
+                    const storedFaceId = student.faceId;
 
-                return axios.post(`${endpoint}/verify`, {
-                    faceId1: detectedFaceId,
-                    faceId2: storedFaceId
-                }, {
-                    headers: {
-                        'Ocp-Apim-Subscription-Key': subscriptionKey,
-                        'Content-Type': 'application/json'
+                    return axios.post(`${endpoint}/verify`, {
+                        faceId1: detectedFaceId,
+                        faceId2: storedFaceId
+                    }, {
+                        headers: {
+                            'Ocp-Apim-Subscription-Key': subscriptionKey,
+                            'Content-Type': 'application/json'
+                        }
+                    })
+                        .then(verificationResponse => {
+                            const verificationResult = verificationResponse.data;
+
+                            if (verificationResult.isIdentical) {
+                                markAttendance(student.id);
+                                attendanceMarked++;
+                            }
+                        });
+                }));
+            });
+
+            // Wait for all verifications to complete
+            Promise.all(verificationPromises)
+                .then(() => {
+                    if (attendanceMarked > 0) {
+                        res.send(`Attendance marked for ${attendanceMarked} students`);
+                    } else {
+                        res.status(400).send('Face verification failed for all detected faces');
                     }
                 })
-                .then(verificationResponse => {
-                    const verificationResult = verificationResponse.data;
-
-                    if (verificationResult.isIdentical) {
-                        markAttendance(student.id);
-                        attendanceMarked++;
-                    }
+                .catch(error => {
+                    console.error('Error processing face verification:', error.message);
+                    res.status(500).send('Face verification failed');
                 });
-            }));
+        })
+        .catch(error => {
+            console.error('Error detecting faces:', error.message);
+            res.status(500).send('Face detection failed');
         });
-
-        // Wait for all verifications to complete
-        Promise.all(verificationPromises)
-            .then(() => {
-                if (attendanceMarked > 0) {
-                    res.send(`Attendance marked for ${attendanceMarked} students`);
-                } else {
-                    res.status(400).send('Face verification failed for all detected faces');
-                }
-            })
-            .catch(error => {
-                console.error('Error processing face verification:', error.message);
-                res.status(500).send('Face verification failed');
-            });
-    })
-    .catch(error => {
-        console.error('Error detecting faces:', error.message);
-        res.status(500).send('Face detection failed');
-    });
 });
 
 // Start the server

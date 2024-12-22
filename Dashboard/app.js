@@ -3,10 +3,16 @@ const path = require('path');
 const multer = require('multer');
 const dotenv = require('dotenv');
 const pdf = require('html-pdf');
+const mongoose = require('mongoose');
 
 dotenv.config();
 
 const app = express();
+
+// // Connect to MongoDB
+// mongoose.connect('mongodb://localhost:27017/tara', { useNewUrlParser: true, useUnifiedTopology: true });
+
+
 
 // Set storage engine for multer
 const storage = multer.diskStorage({
@@ -23,11 +29,11 @@ const upload = multer({
     fileFilter: function (req, file, cb) {
         checkFileType(file, cb);
     }
-}).single('attachment');
+}).array('photos', 10); // Accept up to 10 photos
 
 // Check file type
 function checkFileType(file, cb) {
-    const filetypes = /jpeg|jpg|png|gif|pdf|doc|docx/;
+    const filetypes = /jpeg|jpg|png/;
     const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
     const mimetype = filetypes.test(file.mimetype);
 
@@ -62,45 +68,6 @@ let messages = [
     }
 ];
 
-const students = [
-    {
-        name: "John Doe",
-        rollNumber: "215/ics/018",
-        branch: "Computer Science",
-        semester: "5",
-        attendance: {
-            "2023-09-01": "present",
-            "2023-09-02": "absent",
-        },
-        courses: [
-            { name: "Mathematics", code: "CS101" },
-            { name: "Physics", code: "CS102" }
-        ],
-        notices: ["Assignment due on Friday", "New course materials available"],
-        upcomingClasses: [
-            { course: "Mathematics", date: "2023-09-25", time: "10:00 AM", classroom: "Room 101" },
-            { course: "Physics", date: "2023-09-25", time: "2:00 PM", classroom: "Room 202" }
-        ]
-    }
-];
-
-const teachers = [
-    {
-        name: "Prof. Jane Smith",
-        branch: "Computer Science",
-        classesTaken: 120,
-        courses: [
-            { name: "Mathematics", code: "CS101" },
-            { name: "Physics", code: "CS102" }
-        ],
-        upcomingClasses: [
-            { course: "Mathematics", date: "2023-09-25", time: "10:00 AM", branch: "Computer Science", classroom: "Room 101" },
-            { course: "Physics", date: "2023-09-25", time: "2:00 PM", branch: "Computer Science", classroom: "Room 202" }
-        ],
-        notices: ["Staff meeting on Tuesday", "Submit grades by Friday"]
-    }
-];
-
 // Routes
 
 // Home route
@@ -108,37 +75,75 @@ app.get('/', (req, res) => {
     res.render('index');
 });
 
+// Register route
+app.get('/register', (req, res) => {
+    const role = req.query.role || 'student'; // default to student if role is not provided
+    res.render('register', { role });
+});
+
+app.post('/register', (req, res) => {
+    upload(req, res, async (err) => {
+        if (err) {
+            return res.status(400).send(`Error: ${err.message}`);
+        }
+
+        const { role, name, email, phone, branch, rollNumber, semester, studentCourses, teacherCourses } = req.body;
+        const photos = req.files.map(file => file.path);
+
+        try {
+            if (role === 'student') {
+                const newStudent = new Student({ name, email, phone, branch, rollNumber, semester, courses: studentCourses, photos });
+                await newStudent.save();
+                res.status(201).send('Student registered successfully');
+            } else if (role === 'teacher') {
+                const newTeacher = new Teacher({ name, email, phone, branch, courses: teacherCourses, photos });
+                await newTeacher.save();
+                res.status(201).send('Teacher registered successfully');
+            } else {
+                res.status(400).send('Invalid role');
+            }
+        } catch (error) {
+            console.error('Error registering:', error.message);
+            res.status(500).send('Server error');
+        }
+    });
+});
+
 // Student dashboard route
-app.get('/student-dashboard', (req, res) => {
-    const student = students[0];
+app.get('/student-dashboard', async (req, res) => {
+    const student = await Student.findOne({ rollNumber: req.query.rollNumber });
     res.render('student/student-dashboard', { student, role: 'student' });
 });
 
 // Teacher dashboard route
-app.get('/teacher-dashboard', (req, res) => {
-    const teacher = teachers[0];
+app.get('/teacher-dashboard', async (req, res) => {
+    const teacher = await Teacher.findOne({ email: req.query.email });
     res.render('teacher/teacher-dashboard', { teacher, role: 'teacher' });
 });
 
 // Attendance report route
-app.get('/attendance-report', (req, res) => {
+app.get('/attendance-report', async (req, res) => {
     const role = req.query.role;
     if (role === 'student') {
-        res.render('student/studentReport', { student: students[0] });
+        const student = await Student.findOne({ rollNumber: req.query.rollNumber });
+        res.render('student/studentReport', { student });
     } else {
-        res.render('teacher/teacherReport', { teacher: teachers[0] });
+        const teacher = await Teacher.findOne({ email: req.query.email });
+        res.render('teacher/teacherReport', { teacher });
     }
 });
 
 // Reminder route
-app.get('/reminder', (req, res) => {
+app.get('/reminder', async (req, res) => {
     const userRole = req.query.role;
     let upcomingClasses = [];
 
     if (userRole === 'student') {
-        upcomingClasses = students[0].upcomingClasses;
+        const student = await Student.findOne({ rollNumber: req.query.rollNumber });
+        upcomingClasses = student.courses;
     } else if (userRole === 'teacher') {
-        upcomingClasses = teachers[0].upcomingClasses;
+        const teacher = await Teacher.findOne({ email: req.query.email });
+        upcomingClasses = teacher.courses;
     }
 
     res.render('reminder', { user: { role: userRole }, upcomingClasses });
@@ -151,13 +156,13 @@ app.get('/messages', (req, res) => {
 });
 
 // User Profile route
-app.get('/user-profile', (req, res) => {
-    const role = req.query.role; // Retrieve the role from query parameters
+app.get('/user-profile', async (req, res) => {
+    const role = req.query.role;
     if (role === 'student') {
-        const student = students[0]; // Replace with logic to fetch the correct student
+        const student = await Student.findOne({ rollNumber: req.query.rollNumber });
         res.render('user', { role, student });
     } else if (role === 'teacher') {
-        const teacher = teachers[0]; // Replace with logic to fetch the correct teacher
+        const teacher = await Teacher.findOne({ email: req.query.email });
         res.render('user', { role, teacher });
     } else {
         res.status(400).send("Invalid role specified");
@@ -171,7 +176,7 @@ app.get('/contact-us', (req, res) => {
 
 // Handle form submission for sending messages
 app.post('/send-message', (req, res) => {
-    upload(req, res, (err) => {
+    upload.single('attachment')(req, res, (err) => {
         if (err) {
             return res.send(`Error: ${err.message}`);
         }
@@ -187,15 +192,14 @@ app.post('/send-message', (req, res) => {
 // Handle feedback submission
 app.post('/submit-feedback', (req, res) => {
     const { name, rollNumber, email, feedback } = req.body;
-    // You can add code here to save the feedback to a database or process it further
     console.log(`Feedback received from ${name} (${rollNumber}, ${email}): ${feedback}`);
     res.send('Feedback submitted successfully');
 });
 
 // Generate Student Report as PDF
-app.get('/generate-student-report-pdf', (req, res) => {
-    const { courseCode, month, year } = req.query;
-    const student = students[0];
+app.get('/generate-student-report-pdf', async (req, res) => {
+    const { courseCode, month, year, rollNumber } = req.query;
+    const student = await Student.findOne({ rollNumber });
     const attendance = student.attendance;
 
     let reportData = `<h1>Attendance Report for Course: ${courseCode}</h1>
@@ -227,10 +231,10 @@ app.get('/generate-student-report-pdf', (req, res) => {
 });
 
 // API to get student attendance data for a specific course, month, and year
-app.get('/api/student-attendance', (req, res) => {
+app.get('/api/student-attendance', async (req, res) => {
     const { rollNumber, courseCode, month, year } = req.query;
 
-    const student = students.find(s => s.rollNumber === rollNumber);
+    const student = await Student.findOne({ rollNumber });
     if (!student) {
         return res.status(404).json({ error: "Student not found" });
     }
