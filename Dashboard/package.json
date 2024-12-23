@@ -10,6 +10,8 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@azure/cognitiveservices-face": "^5.0.0",
+    "@azure/ms-rest-js": "^2.7.0",
     "body-parser": "^1.20.3",
     "dotenv": "^16.4.7",
     "ejs": "^3.1.10",

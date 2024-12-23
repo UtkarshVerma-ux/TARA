@@ -91,29 +91,12 @@ button:disabled {
     max-width: 100px;
     border: 2px solid #2e7d32;
     border-radius: 5px;
+    cursor: pointer; /* Add pointer cursor to indicate clickability */
 }
 
+/* Hide the preview button */
 #photos-preview .img-preview button {
-    position: absolute;
-    top: 5px;
-    right: 5px;
-    background-color: #f44336; /* Red button */
-    color: white;
-    border: none;
-    border-radius: 50%;
-    width: 24px;
-    height: 24px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 16px;
-    line-height: 1;
-    transition: background-color 0.3s ease;
-}
-
-#photos-preview .img-preview button:hover {
-    background-color: #d32f2f; /* Darker red on hover */
+    display: none;
 }
 
 /* Responsive Design */

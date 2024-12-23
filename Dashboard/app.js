@@ -4,15 +4,18 @@ const multer = require('multer');
 const dotenv = require('dotenv');
 const pdf = require('html-pdf');
 const mongoose = require('mongoose');
+const { FaceClient } = require('@azure/cognitiveservices-face');
+const { ApiKeyCredentials } = require('@azure/ms-rest-js');
+const fs = require('fs');
 
 dotenv.config();
 
 const app = express();
 
-// // Connect to MongoDB
-// mongoose.connect('mongodb://localhost:27017/tara', { useNewUrlParser: true, useUnifiedTopology: true });
-
-
+// Connect to MongoDB
+mongoose.connect("mongodb+srv://kumarayush0926:V9TNMT5743SC9l02@tara.0gmn5.mongodb.net/tara?retryWrites=true&w=majority").then(() => {
+    console.log("database connected");
+});
 
 // Set storage engine for multer
 const storage = multer.diskStorage({
@@ -54,19 +57,35 @@ app.use(express.json());
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
-// Example data
-let messages = [
-    {
-        sender: "Prof. Jane Smith",
-        text: "Please review the attached assignment.",
-        attachment: "/uploads/example-assignment.pdf"
-    },
-    {
-        sender: "Prof. Jane Smith",
-        text: "Don't forget to submit your project by the end of the week.",
-        attachment: null
-    }
-];
+// Azure Face API setup
+const AZURE_FACE_API_KEY = "BLVUWHBQLqgbzDl8KnAyQUPwyccSdDU4QyK5dCrO94zsKGx2vU37JQQJ99ALACGhslBXJ3w3AAAKACOGQEcx"
+const AZURE_FACE_ENDPOINT = "https://trackingandrecognitionattendancesystem.cognitiveservices.azure.com/"
+const credentials = new ApiKeyCredentials({ inHeader: { 'Ocp-Apim-Subscription-Key': AZURE_FACE_API_KEY } });
+const faceClient = new FaceClient(credentials, AZURE_FACE_ENDPOINT);
+
+// Function to detect face and return face ID
+async function getFaceId(imagePath) {
+    const imageUrl = path.join(__dirname, imagePath);
+    const imageStream = fs.createReadStream(imageUrl);
+    try{
+        const detectedFaces = await faceClient.face.detectWithStream(
+            () => imageStream,  // Pass a function returning a NodeJS.ReadableStream
+            {
+                returnFaceId: true,
+                detectionModel: 'detection_03'
+            }
+        );
+    
+        if (detectedFaces.length > 0) {
+            return detectedFaces[0].faceId;
+        } else {
+            throw new Error("No face detected in the image.");
+        }
+    } catch (error) { console.error('Error in getFaceId:', error); 
+        throw error; }
+    
+}
+
 
 // Routes
 
@@ -92,11 +111,34 @@ app.post('/register', (req, res) => {
 
         try {
             if (role === 'student') {
-                const newStudent = new Student({ name, email, phone, branch, rollNumber, semester, courses: studentCourses, photos });
+                const faceIds = await Promise.all(photos.map(photo => getFaceId(photo)));
+                const newStudent = new Student({
+                    name,
+                    email,
+                    phone,
+                    branch,
+                    rollNumber,
+                    semester,
+                    courses: studentCourses.map(course => ({
+                        name: course.name,
+                        code: course.code
+                    })),
+                    photos: faceIds
+                });
                 await newStudent.save();
                 res.status(201).send('Student registered successfully');
             } else if (role === 'teacher') {
-                const newTeacher = new Teacher({ name, email, phone, branch, courses: teacherCourses, photos });
+                const newTeacher = new Teacher({
+                    name,
+                    email,
+                    phone,
+                    branch,
+                    courses: teacherCourses.map(course => ({
+                        name: course.name,
+                        code: course.code,
+                        branch: course.branch
+                    }))
+                });
                 await newTeacher.save();
                 res.status(201).send('Teacher registered successfully');
             } else {
@@ -108,6 +150,21 @@ app.post('/register', (req, res) => {
         }
     });
 });
+
+
+// Example data
+let messages = [
+    {
+        sender: "Prof. Jane Smith",
+        text: "Please review the attached assignment.",
+        attachment: "/uploads/example-assignment.pdf"
+    },
+    {
+        sender: "Prof. Jane Smith",
+        text: "Don't forget to submit your project by the end of the week.",
+        attachment: null
+    }
+];
 
 // Student dashboard route
 app.get('/student-dashboard', async (req, res) => {

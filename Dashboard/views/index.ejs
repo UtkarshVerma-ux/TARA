@@ -30,7 +30,7 @@
         </div>
         <button type="button">Login</button>
         <button type="button" onclick="cancelForm()">Cancel</button>
-        <p class="register-option">Not yet registered? <a href="<%= '/register/teacher' %>">Register as Teacher</a></p>
+        <p class="register-option">Not yet registered? <a href="<%= '/register/?role=teacher' %>">Register as Teacher</a></p>
     </div>
 
     <!-- Student Login Form -->
@@ -43,9 +43,9 @@
         </div>
         <button type="button">Login</button>
         <button type="button" onclick="cancelForm()">Cancel</button>
-        <p class="register-option">Not yet registered? <a href="<%= '/register/student' %>">Register as Student</a></p>
+        <p class="register-option">Not yet registered? <a href="<%= '/register/?role=student' %>">Register as Student</a></p>
     </div>
 
-    <script src="<%= 'js/index.js' %>"></script>
+    <script src="/js/index.js" type="text/JavaScript"></script>
 </body>
 </html>
