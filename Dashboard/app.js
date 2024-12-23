@@ -6,7 +6,7 @@ const mongoose = require('mongoose');
 const { FaceClient } = require('@azure/cognitiveservices-face');
 const { ApiKeyCredentials } = require('@azure/ms-rest-js');
 const fs = require('fs');
-const pdf = require('html-pdf');  // Ensure you have installed this package
+const pdf = require('html-pdf');
 
 // Load environment variables
 dotenv.config();
@@ -33,13 +33,16 @@ const upload = multer({
         const filetypes = /jpeg|jpg|png/;
         const isValidExt = filetypes.test(path.extname(file.originalname).toLowerCase());
         const isValidMime = filetypes.test(file.mimetype);
-        cb(isValidExt && isValidMime ? null : 'Error: Invalid file type!');
+        if (!(isValidExt && isValidMime)) {
+            return cb(new Error('Error: Invalid file type!'));
+        }
+        cb(null, true);
     }
-}).array('photos', 10);  // Allows up to 10 photos for student registration
+}).array('photos', 10);
 
 // Azure Face API setup
-const AZURE_FACE_API_KEY = "BLVUWHBQLqgbzDl8KnAyQUPwyccSdDU4QyK5dCrO94zsKGx2vU37JQQJ99ALACGhslBXJ3w3AAAKACOGQEcx"
-const AZURE_FACE_ENDPOINT = "https://trackingandrecognitionattendancesystem.cognitiveservices.azure.com/"
+const AZURE_FACE_API_KEY = "BLVUWHBQLqgbzDl8KnAyQUPwyccSdDU4QyK5dCrO94zsKGx2vU37JQQJ99ALACGhslBXJ3w3AAAKACOGQEcx";
+const AZURE_FACE_ENDPOINT = "https://trackingandrecognitionattendancesystem.cognitiveservices.azure.com/";
 const credentials = new ApiKeyCredentials({ inHeader: { 'Ocp-Apim-Subscription-Key': AZURE_FACE_API_KEY } });
 const faceClient = new FaceClient(credentials, AZURE_FACE_ENDPOINT);
 
@@ -48,13 +51,20 @@ async function getFaceId(imagePath) {
         const imageStream = fs.createReadStream(imagePath);
         const faces = await faceClient.face.detectWithStream(
             () => imageStream,
-            { returnFaceId: true, detectionModel: 'detection_03' }
+            {
+                returnFaceId: true,
+                detectionModel: 'detection_03',
+                returnFaceAttributes: ['age', 'gender']
+            }
         );
-        if (faces.length === 0) throw new Error('No face detected.');
+        if (faces.length === 0) {
+            console.error(`No face detected in image: ${imagePath}`);
+            return null;
+        }
         return faces[0].faceId;
     } catch (error) {
-        console.error('Error in getFaceId:', error);
-        throw error;
+        console.error(`Error in getFaceId for image ${imagePath}:`, error);
+        return null;
     }
 }
 
@@ -116,18 +126,21 @@ app.post('/register', (req, res) => {
         const { role, name, email, phone, rollNumber, semester, studentCourses, teacherCourses } = req.body;
         const photos = req.files.map(file => file.path);
 
+        console.log('Processing photos:', photos);
+
         try {
             if (role === 'student') {
                 const faceIds = await Promise.all(photos.map(async (photo) => {
-                    try {
-                        return await getFaceId(photo);
-                    } catch (err) {
-                        throw new Error(`Face detection failed for image ${photo}: ${err.message}`);
+                    const faceId = await getFaceId(photo);
+                    if (!faceId) {
+                        console.error(`Face detection failed for image ${photo}`);
                     }
+                    return faceId;
                 }));
 
-                if (faceIds.length === 0) {
-                    return res.status(400).send('Error: No face detected in the provided photos.');
+                const validFaceId = faceIds.find(faceId => faceId !== null);
+                if (!validFaceId) {
+                    return res.status(400).send('Error: No face detected in any of the provided photos.');
                 }
 
                 const newStudent = new Student({
@@ -140,7 +153,7 @@ app.post('/register', (req, res) => {
                         name: course.name,
                         code: course.code
                     })),
-                    faceId: faceIds[0]  // Use the first photo's faceId
+                    faceId: validFaceId
                 });
                 await newStudent.save();
                 res.status(201).send('Student registered successfully');
