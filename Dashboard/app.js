@@ -2,7 +2,6 @@ const express = require('express');
 const path = require('path');
 const multer = require('multer');
 const dotenv = require('dotenv');
-const pdf = require('html-pdf');
 const mongoose = require('mongoose');
 const { FaceClient } = require('@azure/cognitiveservices-face');
 const { ApiKeyCredentials } = require('@azure/ms-rest-js');
@@ -35,7 +34,7 @@ const upload = multer({
         const isValidMime = filetypes.test(file.mimetype);
         cb(isValidExt && isValidMime ? null : 'Error: Invalid file type!');
     }
-}).array('photos', 10);
+}).array('photos', 10);  // Allows up to 10 photos for student registration
 
 // Azure Face API setup
 const AZURE_FACE_API_KEY = "BLVUWHBQLqgbzDl8KnAyQUPwyccSdDU4QyK5dCrO94zsKGx2vU37JQQJ99ALACGhslBXJ3w3AAAKACOGQEcx"
@@ -67,85 +66,38 @@ app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
 // Models (Placeholder, replace with your schema definitions)
-const studentSchema = {
-    name: {
-        type: String,
-        required: true
-    },
-    email: {
-        type: String,
-        required: true
-    },
-    phone: {
-        type: String,
-        required: true
-    },
-    branch: {
-        type: String,
-        required: true
-    },
-    faceId: {
-        type: String,
-        required: true
-    },
-    rollNumber: {
-        type: String,
-        required: true,
-        unique: true
-    },
-    semester: {
-        type: String,
-        required: true
-    },
+const studentSchema = new mongoose.Schema({
+    name: { type: String, required: true },
+    email: { type: String, required: true },
+    phone: { type: String, required: true },
+    branch: { type: String, required: true },
+    faceId: { type: String, required: true },
+    rollNumber: { type: String, required: true, unique: true },
+    semester: { type: String, required: true },
     courses: [
-        {
-            name: { type: String, required: true },
-            code: { type: String, required: true }
-        }
+        { name: { type: String, required: true }, code: { type: String, required: true } }
     ],
     attendance: [
         {
             courseCode: { type: String, required: true },
             records: [
-                {
-                    date: { type: Date, required: true },
-                    status: { type: String, enum: ['Present', 'Absent'], required: true }
-                }
+                { date: { type: Date, required: true }, status: { type: String, enum: ['Present', 'Absent'], required: true } }
             ]
         }
     ]
-};
+});
 
-const teacherSchema = {
-    name: { 
-        type: String,
-        required: true 
-    },
-    email: { 
-        type: String, 
-        required: true,
-        unique: true 
-    },
-    phone: { 
-        type: String,
-        required: true 
-    },
+const teacherSchema = new mongoose.Schema({
+    name: { type: String, required: true },
+    email: { type: String, required: true, unique: true },
+    phone: { type: String, required: true },
     courses: [
-        {
-            name: { type: String, required: true },
-            code: { type: String, required: true },
-            branch: { type: String, required: true }
-        }
+        { name: { type: String, required: true }, code: { type: String, required: true }, branch: { type: String, required: true } }
     ],
     attendance: [
-        {
-            branch: { type: String, required: true },
-            courseCode: { type: String, required: true },
-            date: { type: Date, required: true }
-        }
+        { branch: { type: String, required: true }, courseCode: { type: String, required: true }, date: { type: Date, required: true } }
     ]
-};
-
+});
 
 const Student = mongoose.model('Student', studentSchema);
 const Teacher = mongoose.model('Teacher', teacherSchema);
@@ -175,7 +127,7 @@ app.post('/register', (req, res) => {
                     rollNumber,
                     semester,
                     courses: studentCourses,
-                    photos: faceIds
+                    faceId: faceIds[0]  // Use the first photo's faceId
                 });
                 await newStudent.save();
                 res.status(201).send('Student registered successfully');
