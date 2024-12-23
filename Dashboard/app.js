@@ -8,54 +8,34 @@ const { FaceClient } = require('@azure/cognitiveservices-face');
 const { ApiKeyCredentials } = require('@azure/ms-rest-js');
 const fs = require('fs');
 
+// Load environment variables
 dotenv.config();
 
 const app = express();
 
-// Connect to MongoDB
-mongoose.connect("mongodb+srv://kumarayush0926:V9TNMT5743SC9l02@tara.0gmn5.mongodb.net/tara?retryWrites=true&w=majority").then(() => {
-    console.log("database connected");
-});
+// MongoDB connection
+mongoose.connect("mongodb+srv://kumarayush0926:V9TNMT5743SC9l02@tara.0gmn5.mongodb.net/tara?retryWrites=true&w=majority")
+    .then(() => console.log('Database connected'))
+    .catch(err => console.error('Database connection error:', err));
 
-// Set storage engine for multer
+// Multer configuration for file uploads
 const storage = multer.diskStorage({
     destination: './uploads/',
-    filename: function (req, file, cb) {
-        cb(null, file.fieldname + '-' + Date.now() + path.extname(file.originalname));
+    filename: (req, file, cb) => {
+        cb(null, `${file.fieldname}-${Date.now()}${path.extname(file.originalname)}`);
     }
 });
 
-// Init upload
 const upload = multer({
-    storage: storage,
-    limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
-    fileFilter: function (req, file, cb) {
-        checkFileType(file, cb);
+    storage,
+    limits: { fileSize: 10 * 1024 * 1024 },
+    fileFilter: (req, file, cb) => {
+        const filetypes = /jpeg|jpg|png/;
+        const isValidExt = filetypes.test(path.extname(file.originalname).toLowerCase());
+        const isValidMime = filetypes.test(file.mimetype);
+        cb(isValidExt && isValidMime ? null : 'Error: Invalid file type!');
     }
-}).array('photos', 10); // Accept up to 10 photos
-
-// Check file type
-function checkFileType(file, cb) {
-    const filetypes = /jpeg|jpg|png/;
-    const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
-    const mimetype = filetypes.test(file.mimetype);
-
-    if (mimetype && extname) {
-        return cb(null, true);
-    } else {
-        cb('Error: Invalid file type!');
-    }
-}
-
-// Middleware to serve static files
-app.use(express.static(path.join(__dirname, 'public')));
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
-
-// Set the view engine to EJS
-app.set('view engine', 'ejs');
-app.set('views', path.join(__dirname, 'views'));
+}).array('photos', 10);
 
 // Azure Face API setup
 const AZURE_FACE_API_KEY = "BLVUWHBQLqgbzDl8KnAyQUPwyccSdDU4QyK5dCrO94zsKGx2vU37JQQJ99ALACGhslBXJ3w3AAAKACOGQEcx"
@@ -63,55 +43,130 @@ const AZURE_FACE_ENDPOINT = "https://trackingandrecognitionattendancesystem.cogn
 const credentials = new ApiKeyCredentials({ inHeader: { 'Ocp-Apim-Subscription-Key': AZURE_FACE_API_KEY } });
 const faceClient = new FaceClient(credentials, AZURE_FACE_ENDPOINT);
 
-// Function to detect face and return face ID
 async function getFaceId(imagePath) {
-    const imageUrl = path.join(__dirname, imagePath);
-    const imageStream = fs.createReadStream(imageUrl);
-    try{
-        const detectedFaces = await faceClient.face.detectWithStream(
-            () => imageStream,  // Pass a function returning a NodeJS.ReadableStream
-            {
-                returnFaceId: true,
-                detectionModel: 'detection_03'
-            }
+    try {
+        const imageStream = fs.createReadStream(imagePath);
+        const faces = await faceClient.face.detectWithStream(
+            () => imageStream,
+            { returnFaceId: true, detectionModel: 'detection_03' }
         );
-    
-        if (detectedFaces.length > 0) {
-            return detectedFaces[0].faceId;
-        } else {
-            throw new Error("No face detected in the image.");
-        }
-    } catch (error) { console.error('Error in getFaceId:', error); 
-        throw error; }
-    
+        if (faces.length === 0) throw new Error('No face detected.');
+        return faces[0].faceId;
+    } catch (error) {
+        console.error('Error in getFaceId:', error);
+        throw error;
+    }
 }
 
+// Middleware
+app.use(express.static(path.join(__dirname, 'public')));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'views'));
+
+// Models (Placeholder, replace with your schema definitions)
+const studentSchema = {
+    name: {
+        type: String,
+        required: true
+    },
+    email: {
+        type: String,
+        required: true
+    },
+    phone: {
+        type: String,
+        required: true
+    },
+    branch: {
+        type: String,
+        required: true
+    },
+    faceId: {
+        type: String,
+        required: true
+    },
+    rollNumber: {
+        type: String,
+        required: true,
+        unique: true
+    },
+    semester: {
+        type: String,
+        required: true
+    },
+    courses: [
+        {
+            name: { type: String, required: true },
+            code: { type: String, required: true }
+        }
+    ],
+    attendance: [
+        {
+            courseCode: { type: String, required: true },
+            records: [
+                {
+                    date: { type: Date, required: true },
+                    status: { type: String, enum: ['Present', 'Absent'], required: true }
+                }
+            ]
+        }
+    ]
+};
+
+const teacherSchema = {
+    name: { 
+        type: String,
+        required: true 
+    },
+    email: { 
+        type: String, 
+        required: true,
+        unique: true 
+    },
+    phone: { 
+        type: String,
+        required: true 
+    },
+    courses: [
+        {
+            name: { type: String, required: true },
+            code: { type: String, required: true },
+            branch: { type: String, required: true }
+        }
+    ],
+    attendance: [
+        {
+            branch: { type: String, required: true },
+            courseCode: { type: String, required: true },
+            date: { type: Date, required: true }
+        }
+    ]
+};
+
+
+const Student = mongoose.model('Student', studentSchema);
+const Teacher = mongoose.model('Teacher', teacherSchema);
 
 // Routes
+app.get('/', (req, res) => res.render('index'));
 
-// Home route
-app.get('/', (req, res) => {
-    res.render('index');
-});
-
-// Register route
 app.get('/register', (req, res) => {
-    const role = req.query.role || 'student'; // default to student if role is not provided
-    res.render('register', { role });
+    res.render('register', { role: req.query.role || 'student' });
 });
 
 app.post('/register', (req, res) => {
     upload(req, res, async (err) => {
-        if (err) {
-            return res.status(400).send(`Error: ${err.message}`);
-        }
+        if (err) return res.status(400).send(`Error: ${err}`);
 
         const { role, name, email, phone, branch, rollNumber, semester, studentCourses, teacherCourses } = req.body;
         const photos = req.files.map(file => file.path);
 
         try {
             if (role === 'student') {
-                const faceIds = await Promise.all(photos.map(photo => getFaceId(photo)));
+                const faceIds = await Promise.all(photos.map(getFaceId));
                 const newStudent = new Student({
                     name,
                     email,
@@ -119,10 +174,7 @@ app.post('/register', (req, res) => {
                     branch,
                     rollNumber,
                     semester,
-                    courses: studentCourses.map(course => ({
-                        name: course.name,
-                        code: course.code
-                    })),
+                    courses: studentCourses,
                     photos: faceIds
                 });
                 await newStudent.save();
@@ -133,11 +185,7 @@ app.post('/register', (req, res) => {
                     email,
                     phone,
                     branch,
-                    courses: teacherCourses.map(course => ({
-                        name: course.name,
-                        code: course.code,
-                        branch: course.branch
-                    }))
+                    courses: teacherCourses
                 });
                 await newTeacher.save();
                 res.status(201).send('Teacher registered successfully');
@@ -145,174 +193,45 @@ app.post('/register', (req, res) => {
                 res.status(400).send('Invalid role');
             }
         } catch (error) {
-            console.error('Error registering:', error.message);
+            console.error('Error registering user:', error);
             res.status(500).send('Server error');
         }
     });
 });
 
-
-// Example data
-let messages = [
-    {
-        sender: "Prof. Jane Smith",
-        text: "Please review the attached assignment.",
-        attachment: "/uploads/example-assignment.pdf"
-    },
-    {
-        sender: "Prof. Jane Smith",
-        text: "Don't forget to submit your project by the end of the week.",
-        attachment: null
-    }
-];
-
-// Student dashboard route
 app.get('/student-dashboard', async (req, res) => {
     const student = await Student.findOne({ rollNumber: req.query.rollNumber });
     res.render('student/student-dashboard', { student, role: 'student' });
 });
 
-// Teacher dashboard route
 app.get('/teacher-dashboard', async (req, res) => {
     const teacher = await Teacher.findOne({ email: req.query.email });
     res.render('teacher/teacher-dashboard', { teacher, role: 'teacher' });
 });
 
-// Attendance report route
-app.get('/attendance-report', async (req, res) => {
-    const role = req.query.role;
-    if (role === 'student') {
-        const student = await Student.findOne({ rollNumber: req.query.rollNumber });
-        res.render('student/studentReport', { student });
-    } else {
-        const teacher = await Teacher.findOne({ email: req.query.email });
-        res.render('teacher/teacherReport', { teacher });
-    }
-});
-
-// Reminder route
-app.get('/reminder', async (req, res) => {
-    const userRole = req.query.role;
-    let upcomingClasses = [];
-
-    if (userRole === 'student') {
-        const student = await Student.findOne({ rollNumber: req.query.rollNumber });
-        upcomingClasses = student.courses;
-    } else if (userRole === 'teacher') {
-        const teacher = await Teacher.findOne({ email: req.query.email });
-        upcomingClasses = teacher.courses;
-    }
-
-    res.render('reminder', { user: { role: userRole }, upcomingClasses });
-});
-
-// Messages route
-app.get('/messages', (req, res) => {
-    const userRole = req.query.role;
-    res.render('messages', { role: userRole, messages });
-});
-
-// User Profile route
-app.get('/user-profile', async (req, res) => {
-    const role = req.query.role;
-    if (role === 'student') {
-        const student = await Student.findOne({ rollNumber: req.query.rollNumber });
-        res.render('user', { role, student });
-    } else if (role === 'teacher') {
-        const teacher = await Teacher.findOne({ email: req.query.email });
-        res.render('user', { role, teacher });
-    } else {
-        res.status(400).send("Invalid role specified");
-    }
-});
-
-// Contact Us route
-app.get('/contact-us', (req, res) => {
-    res.render('contact-us', { role: req.query.role });
-});
-
-// Handle form submission for sending messages
-app.post('/send-message', (req, res) => {
-    upload.single('attachment')(req, res, (err) => {
-        if (err) {
-            return res.send(`Error: ${err.message}`);
-        }
-        const { message } = req.body;
-        const sender = req.query.role === 'teacher' ? "Prof. Jane Smith" : "Unknown";
-        const attachment = req.file ? `/uploads/${req.file.filename}` : null;
-
-        messages.push({ sender, text: message, attachment });
-        res.redirect(`/messages?role=${req.query.role}`);
-    });
-});
-
-// Handle feedback submission
-app.post('/submit-feedback', (req, res) => {
-    const { name, rollNumber, email, feedback } = req.body;
-    console.log(`Feedback received from ${name} (${rollNumber}, ${email}): ${feedback}`);
-    res.send('Feedback submitted successfully');
-});
-
-// Generate Student Report as PDF
 app.get('/generate-student-report-pdf', async (req, res) => {
-    const { courseCode, month, year, rollNumber } = req.query;
+    const { rollNumber, courseCode, month, year } = req.query;
     const student = await Student.findOne({ rollNumber });
-    const attendance = student.attendance;
 
-    let reportData = `<h1>Attendance Report for Course: ${courseCode}</h1>
-                      <p>Month: ${month} Year: ${year}</p>
-                      <table border="1">
-                          <thead>
-                              <tr>
-                                  <th>Date</th>
-                                  <th>Status</th>
-                              </tr>
-                          </thead>
-                          <tbody>`;
+    const reportData = `<h1>Attendance Report for ${courseCode}</h1>
+                        <p>Month: ${month}, Year: ${year}</p>
+                        <table border="1">
+                            <thead><tr><th>Date</th><th>Status</th></tr></thead>
+                            <tbody>${Object.entries(student.attendance || {})
+                                .filter(([date]) => {
+                                    const d = new Date(date);
+                                    return d.getMonth() + 1 == month && d.getFullYear() == year;
+                                })
+                                .map(([date, status]) => `<tr><td>${date}</td><td>${status}</td></tr>`)
+                                .join('')}</tbody>
+                        </table>`;
 
-    for (const [date, status] of Object.entries(attendance)) {
-        const d = new Date(date);
-        if (d.getMonth() + 1 == month && d.getFullYear() == year) {
-            reportData += `<tr><td>${date}</td><td>${status}</td></tr>`;
-        }
-    }
-
-    reportData += `</tbody></table>`;
-
-    pdf.create(reportData).toFile('./uploads/student-attendance-report.pdf', (err, result) => {
-        if (err) {
-            return res.send(`PDF generation failed: ${err}`);
-        }
+    pdf.create(reportData).toFile('./uploads/report.pdf', (err, result) => {
+        if (err) return res.status(500).send('Error generating PDF');
         res.download(result.filename);
     });
 });
 
-// API to get student attendance data for a specific course, month, and year
-app.get('/api/student-attendance', async (req, res) => {
-    const { rollNumber, courseCode, month, year } = req.query;
-
-    const student = await Student.findOne({ rollNumber });
-    if (!student) {
-        return res.status(404).json({ error: "Student not found" });
-    }
-
-    const filteredAttendance = {};
-    const attendance = student.attendance;
-
-    for (const [date, status] of Object.entries(attendance)) {
-        const d = new Date(date);
-        if (d.getMonth() + 1 == month && d.getFullYear() == year) {
-            filteredAttendance[date] = status;
-        }
-    }
-
-    if (Object.keys(filteredAttendance).length === 0) {
-        return res.status(404).json({ error: "No attendance records found for the given criteria" });
-    }
-
-    res.json({ courseCode, month, year, attendance: filteredAttendance });
-});
-
-// Start the server
+// Server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
