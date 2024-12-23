@@ -14,7 +14,7 @@ dotenv.config();
 const app = express();
 
 // MongoDB connection
-mongoose.connect("mongodb+srv://kumarayush0926:V9TNMT5743SC9l02@tara.0gmn5.mongodb.net/tara?retryWrites=true&w=majority")
+mongoose.connect(process.env.MONGODB_URI || "mongodb+srv://kumarayush0926:V9TNMT5743SC9l02@tara.0gmn5.mongodb.net/tara?retryWrites=true&w=majority")
     .then(() => console.log('Database connected'))
     .catch(err => console.error('Database connection error:', err));
 
@@ -41,8 +41,8 @@ const upload = multer({
 }).array('photos', 10);
 
 // Azure Face API setup
-const AZURE_FACE_API_KEY = "BLVUWHBQLqgbzDl8KnAyQUPwyccSdDU4QyK5dCrO94zsKGx2vU37JQQJ99ALACGhslBXJ3w3AAAKACOGQEcx";
-const AZURE_FACE_ENDPOINT = "https://trackingandrecognitionattendancesystem.cognitiveservices.azure.com/";
+const AZURE_FACE_API_KEY = process.env.AZURE_FACE_API_KEY || "BLVUWHBQLqgbzDl8KnAyQUPwyccSdDU4QyK5dCrO94zsKGx2vU37JQQJ99ALACGhslBXJ3w3AAAKACOGQEcx";
+const AZURE_FACE_ENDPOINT = process.env.AZURE_FACE_ENDPOINT || "https://trackingandrecognitionattendancesystem.cognitiveservices.azure.com/";
 const credentials = new ApiKeyCredentials({ inHeader: { 'Ocp-Apim-Subscription-Key': AZURE_FACE_API_KEY } });
 const faceClient = new FaceClient(credentials, AZURE_FACE_ENDPOINT);
 
@@ -53,8 +53,8 @@ async function getFaceId(imagePath) {
             () => imageStream,
             {
                 returnFaceId: true,
-                detectionModel: 'detection_03',
-                returnFaceAttributes: ['age', 'gender']
+                detectionModel: 'detection_03'
+                // Removed deprecated attributes
             }
         );
         if (faces.length === 0) {
@@ -153,7 +153,7 @@ app.post('/register', (req, res) => {
                         name: course.name,
                         code: course.code
                     })),
-                    faceId: validFaceId
+                    faceId: validFaceId  // Use the first valid faceId
                 });
                 await newStudent.save();
                 res.status(201).send('Student registered successfully');
