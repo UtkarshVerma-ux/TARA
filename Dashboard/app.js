@@ -5,9 +5,10 @@ const dotenv = require('dotenv');
 const mongoose = require('mongoose');
 const fs = require('fs');
 const pdf = require('html-pdf');
-const sharp = require('sharp'); // Import sharp for image processing
 const { FaceClient } = require('@azure/cognitiveservices-face');
 const { ApiKeyCredentials } = require('@azure/ms-rest-js');
+const sharp = require('sharp'); // Import sharp for image compression
+const { Readable } = require('stream'); // Import Readable stream for buffer to stream conversion
 
 // Load environment variables
 dotenv.config();
@@ -15,21 +16,16 @@ dotenv.config();
 const app = express();
 
 // MongoDB connection
-mongoose.connect(process.env.MONGODB_URI || "mongodb+srv://kumarayush0926:V9TNMT5743SC9l02@tara.0gmn5.mongodb.net/tara?retryWrites=true&w=majority")
+mongoose.connect("mongodb+srv://kumarayush0926:V9TNMT5743SC9l02@tara?retryWrites=true&w=majority")
     .then(() => console.log('Database connected'))
     .catch(err => console.error('Database connection error:', err));
 
-// Multer configuration for file uploads
-const storage = multer.diskStorage({
-    destination: './uploads/',
-    filename: (req, file, cb) => {
-        cb(null, `<span class="math-inline">\{file\.fieldname\}\-</span>{Date.now()}${path.extname(file.originalname)}`);
-    }
-});
+// Multer configuration for file uploads with compression
+const storage = multer.memoryStorage(); // Use memoryStorage to directly access file buffer
 
 const upload = multer({
     storage,
-    limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
+    limits: { fileSize: 5 * 1024 * 1024 }, // Set file size limit to 5MB after compression
     fileFilter: (req, file, cb) => {
         const filetypes = /jpeg|jpg|png/;
         const isValidExt = filetypes.test(path.extname(file.originalname).toLowerCase());
@@ -47,23 +43,27 @@ const AZURE_FACE_ENDPOINT = "https://trackingandrecognitionattendancesystem.cogn
 const credentials = new ApiKeyCredentials({ inHeader: { 'Ocp-Apim-Subscription-Key': AZURE_FACE_API_KEY } });
 const faceClient = new FaceClient(credentials, AZURE_FACE_ENDPOINT);
 
-async function getFaceId(imagePath) {
+async function getFaceId(imageBuffer) {
     try {
-        const imageStream = fs.createReadStream(imagePath);
+        // Convert image buffer to a readable stream
+        const imageStream = new Readable();
+        imageStream.push(imageBuffer);
+        imageStream.push(null);
+
         const faces = await faceClient.face.detectWithStream(
-            () => imageStream,
+            imageStream,
             {
                 returnFaceId: true,
                 detectionModel: 'detection_03'
             }
         );
         if (faces.length === 0) {
-            console.error(`No face detected in image: ${imagePath}`);
+            console.error('No face detected in the image.');
             return null;
         }
         return faces[0].faceId;
     } catch (error) {
-        console.error(`Error in getFaceId for image ${imagePath}:`, error);
+        console.error('Error in getFaceId:', error.message);
         return null;
     }
 }
@@ -124,27 +124,22 @@ app.post('/register', (req, res) => {
         if (err) return res.status(400).send(`Error: ${err}`);
 
         const { role, name, email, phone, rollNumber, semester, studentCourses, teacherCourses } = req.body;
-        const photos = req.files.map(file => file.path);
+        const photos = req.files.map(file => file.buffer); // Use file.buffer directly
 
-        // Process and compress photos
-        const compressedPhotos = await Promise.all(photos.map(async (photoPath) => {
-            try {
-                const compressedImage = await sharp(photoPath)
-                    .resize(512) // Resize to 512 pixels (adjust as needed)
-                    .jpeg({ quality: 80 }) // Adjust quality as needed
-                    .toBuffer();
-                const newPath = `${photoPath}-compressed.jpg`;
-                fs.writeFileSync(newPath, compressedImage);
-                return newPath;
-            } catch (error) {
-                console.error(`Error compressing image: ${photoPath}`, error);
-                return photoPath; // Use original path if compression fails
-            }
-        }));
+        console.log('Processing photos:', photos);
 
         try {
             if (role === 'student') {
-                const faceIds = await Promise.all(compressedPhotos.map(async (photo) => await getFaceId(photo))); // Use compressedPhotos
+                const faceIds = await Promise.all(photos.map(async (photoBuffer) => {
+                    const compressedImageBuffer = await sharp(photoBuffer)
+                        .resize(800)  // Resize to 800px width
+                        .jpeg({ quality: 80 })  // Compress JPEG to 80% quality
+                        .toBuffer();  // Convert to buffer
+
+                    // Detect faceId from the compressed image buffer
+                    return await getFaceId(compressedImageBuffer);
+                }));
+
                 const validFaceId = faceIds.find(faceId => faceId !== null);
                 if (!validFaceId) {
                     return res.status(400).send('Error: No face detected in any of the provided photos.');
