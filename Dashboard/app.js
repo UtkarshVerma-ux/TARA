@@ -6,6 +6,7 @@ const mongoose = require('mongoose');
 const { FaceClient } = require('@azure/cognitiveservices-face');
 const { ApiKeyCredentials } = require('@azure/ms-rest-js');
 const fs = require('fs');
+const pdf = require('html-pdf');  // Ensure you have installed this package
 
 // Load environment variables
 dotenv.config();
@@ -65,18 +66,17 @@ app.use(express.json());
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
-// Models (Placeholder, replace with your schema definitions)
+// Models
 const studentSchema = new mongoose.Schema({
     name: { type: String, required: true },
     email: { type: String, required: true },
     phone: { type: String, required: true },
-    branch: { type: String, required: true },
-    faceId: { type: String, required: true },
     rollNumber: { type: String, required: true, unique: true },
     semester: { type: String, required: true },
     courses: [
         { name: { type: String, required: true }, code: { type: String, required: true } }
     ],
+    faceId: { type: String, required: true },
     attendance: [
         {
             courseCode: { type: String, required: true },
@@ -113,20 +113,33 @@ app.post('/register', (req, res) => {
     upload(req, res, async (err) => {
         if (err) return res.status(400).send(`Error: ${err}`);
 
-        const { role, name, email, phone, branch, rollNumber, semester, studentCourses, teacherCourses } = req.body;
+        const { role, name, email, phone, rollNumber, semester, studentCourses, teacherCourses } = req.body;
         const photos = req.files.map(file => file.path);
 
         try {
             if (role === 'student') {
-                const faceIds = await Promise.all(photos.map(getFaceId));
+                const faceIds = await Promise.all(photos.map(async (photo) => {
+                    try {
+                        return await getFaceId(photo);
+                    } catch (err) {
+                        throw new Error(`Face detection failed for image ${photo}: ${err.message}`);
+                    }
+                }));
+
+                if (faceIds.length === 0) {
+                    return res.status(400).send('Error: No face detected in the provided photos.');
+                }
+
                 const newStudent = new Student({
                     name,
                     email,
                     phone,
-                    branch,
                     rollNumber,
                     semester,
-                    courses: studentCourses,
+                    courses: studentCourses.map(course => ({
+                        name: course.name,
+                        code: course.code
+                    })),
                     faceId: faceIds[0]  // Use the first photo's faceId
                 });
                 await newStudent.save();
@@ -136,8 +149,11 @@ app.post('/register', (req, res) => {
                     name,
                     email,
                     phone,
-                    branch,
-                    courses: teacherCourses
+                    courses: teacherCourses.map(course => ({
+                        name: course.name,
+                        code: course.code,
+                        branch: course.branch
+                    }))
                 });
                 await newTeacher.save();
                 res.status(201).send('Teacher registered successfully');
@@ -146,7 +162,7 @@ app.post('/register', (req, res) => {
             }
         } catch (error) {
             console.error('Error registering user:', error);
-            res.status(500).send('Server error');
+            res.status(500).send(`Server error: ${error.message}`);
         }
     });
 });
@@ -169,12 +185,12 @@ app.get('/generate-student-report-pdf', async (req, res) => {
                         <p>Month: ${month}, Year: ${year}</p>
                         <table border="1">
                             <thead><tr><th>Date</th><th>Status</th></tr></thead>
-                            <tbody>${Object.entries(student.attendance || {})
-                                .filter(([date]) => {
-                                    const d = new Date(date);
-                                    return d.getMonth() + 1 == month && d.getFullYear() == year;
+                            <tbody>${student.attendance
+                                .filter(record => {
+                                    const d = new Date(record.date);
+                                    return d.getMonth() + 1 == month && d.getFullYear() == year && record.courseCode === courseCode;
                                 })
-                                .map(([date, status]) => `<tr><td>${date}</td><td>${status}</td></tr>`)
+                                .map(record => `<tr><td>${record.date.toISOString().slice(0, 10)}</td><td>${record.status}</td></tr>`)
                                 .join('')}</tbody>
                         </table>`;
 
