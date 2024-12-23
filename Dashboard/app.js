@@ -3,10 +3,11 @@ const path = require('path');
 const multer = require('multer');
 const dotenv = require('dotenv');
 const mongoose = require('mongoose');
-const { FaceClient } = require('@azure/cognitiveservices-face');
-const { ApiKeyCredentials } = require('@azure/ms-rest-js');
 const fs = require('fs');
 const pdf = require('html-pdf');
+const sharp = require('sharp'); // Import sharp for image processing
+const { FaceClient } = require('@azure/cognitiveservices-face');
+const { ApiKeyCredentials } = require('@azure/ms-rest-js');
 
 // Load environment variables
 dotenv.config();
@@ -22,27 +23,27 @@ mongoose.connect(process.env.MONGODB_URI || "mongodb+srv://kumarayush0926:V9TNMT
 const storage = multer.diskStorage({
     destination: './uploads/',
     filename: (req, file, cb) => {
-        cb(null, `${file.fieldname}-${Date.now()}${path.extname(file.originalname)}`);
+        cb(null, `<span class="math-inline">\{file\.fieldname\}\-</span>{Date.now()}${path.extname(file.originalname)}`);
     }
 });
 
 const upload = multer({
     storage,
-    limits: { fileSize: 10 * 1024 * 1024 },
+    limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
     fileFilter: (req, file, cb) => {
         const filetypes = /jpeg|jpg|png/;
         const isValidExt = filetypes.test(path.extname(file.originalname).toLowerCase());
         const isValidMime = filetypes.test(file.mimetype);
         if (!(isValidExt && isValidMime)) {
-            return cb(new Error('Error: Invalid file type!'));
+            return cb(new Error('Error: Invalid file type! Only JPEG, JPG, and PNG are allowed.'));
         }
         cb(null, true);
     }
 }).array('photos', 10);
 
 // Azure Face API setup
-const AZURE_FACE_API_KEY = process.env.AZURE_FACE_API_KEY || "BLVUWHBQLqgbzDl8KnAyQUPwyccSdDU4QyK5dCrO94zsKGx2vU37JQQJ99ALACGhslBXJ3w3AAAKACOGQEcx";
-const AZURE_FACE_ENDPOINT = process.env.AZURE_FACE_ENDPOINT || "https://trackingandrecognitionattendancesystem.cognitiveservices.azure.com/";
+const AZURE_FACE_API_KEY = "BLVUWHBQLqgbzDl8KnAyQUPwyccSdDU4QyK5dCrO94zsKGx2vU37JQQJ99ALACGhslBXJ3w3AAAKACOGQEcx"
+const AZURE_FACE_ENDPOINT = "https://trackingandrecognitionattendancesystem.cognitiveservices.azure.com/"
 const credentials = new ApiKeyCredentials({ inHeader: { 'Ocp-Apim-Subscription-Key': AZURE_FACE_API_KEY } });
 const faceClient = new FaceClient(credentials, AZURE_FACE_ENDPOINT);
 
@@ -54,7 +55,6 @@ async function getFaceId(imagePath) {
             {
                 returnFaceId: true,
                 detectionModel: 'detection_03'
-                // Removed deprecated attributes
             }
         );
         if (faces.length === 0) {
@@ -126,18 +126,25 @@ app.post('/register', (req, res) => {
         const { role, name, email, phone, rollNumber, semester, studentCourses, teacherCourses } = req.body;
         const photos = req.files.map(file => file.path);
 
-        console.log('Processing photos:', photos);
+        // Process and compress photos
+        const compressedPhotos = await Promise.all(photos.map(async (photoPath) => {
+            try {
+                const compressedImage = await sharp(photoPath)
+                    .resize(512) // Resize to 512 pixels (adjust as needed)
+                    .jpeg({ quality: 80 }) // Adjust quality as needed
+                    .toBuffer();
+                const newPath = `${photoPath}-compressed.jpg`;
+                fs.writeFileSync(newPath, compressedImage);
+                return newPath;
+            } catch (error) {
+                console.error(`Error compressing image: ${photoPath}`, error);
+                return photoPath; // Use original path if compression fails
+            }
+        }));
 
         try {
             if (role === 'student') {
-                const faceIds = await Promise.all(photos.map(async (photo) => {
-                    const faceId = await getFaceId(photo);
-                    if (!faceId) {
-                        console.error(`Face detection failed for image ${photo}`);
-                    }
-                    return faceId;
-                }));
-
+                const faceIds = await Promise.all(compressedPhotos.map(async (photo) => await getFaceId(photo))); // Use compressedPhotos
                 const validFaceId = faceIds.find(faceId => faceId !== null);
                 if (!validFaceId) {
                     return res.status(400).send('Error: No face detected in any of the provided photos.');
@@ -153,7 +160,7 @@ app.post('/register', (req, res) => {
                         name: course.name,
                         code: course.code
                     })),
-                    faceId: validFaceId  // Use the first valid faceId
+                    faceId: validFaceId
                 });
                 await newStudent.save();
                 res.status(201).send('Student registered successfully');
@@ -193,6 +200,10 @@ app.get('/teacher-dashboard', async (req, res) => {
 app.get('/generate-student-report-pdf', async (req, res) => {
     const { rollNumber, courseCode, month, year } = req.query;
     const student = await Student.findOne({ rollNumber });
+
+    if (!student) {
+        return res.status(404).send('Student not found');
+    }
 
     const reportData = `<h1>Attendance Report for ${courseCode}</h1>
                         <p>Month: ${month}, Year: ${year}</p>
